@@ -1,10 +1,12 @@
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 
-public class Zugnetz {
+public class Zugnetz  {
     private Knoten[] knotenliste;
     private boolean[][] adjazenzmatrix;
     private int maxAnzahl;
@@ -13,55 +15,22 @@ public class Zugnetz {
     private int bildschirmbreite;
     private int bildschirmhoehe;
     private Leinwand leinwand;
+    private Zug zug;
 
-    public Zugnetz(int b, int bildschirmbreite, int bildschirmhoehe, Leinwand leinwand) {
+    public Zugnetz(int b, int bildschirmbreite, int bildschirmhoehe, Leinwand leinwand) throws InterruptedException {
         // bildschirm
         this.bildschirmbreite = bildschirmbreite;
         this.bildschirmhoehe = bildschirmhoehe;
         this.leinwand = leinwand;
+        this.zug = new Zug();
         // zugnetz
         maxAnzahl = b;
         anzahl = 0;
         knotenliste = new Knoten[b];
         adjazenzmatrix = new boolean[b][b];
-        // generiere b neue Knoten und schreibe sie in die Knotenliste
-        System.out.println("Generiere " + b + " neue Bahnhoefe");
-        for (int i = 0; i < b; i++) {
-            // x und y werte über den bildschirm verteilen bahnhoefe sodass sie nicht näher
-            // als 50 pixel aneinander sind
-            int x = (int) (Math.random() * (bildschirmbreite - 50));
-            int y = (int) (Math.random() * (bildschirmhoehe - 50));
-            System.out.println("Bahnhof " + i + " an Position " + x + " x " + y + " y");
-            if (bahnhofInNaehe(x, y)) {
-                System.out.println("Bahnhof in der Nähe. Erstelle neuen Bahnhof");
-                i--;
-                continue;
-            }
-            // name des bahnhoefes
-            String name = "Bahnhof " + i;
-            // erstelle neuen bahnhoef
-            Knoten knoten = new Knoten(new Bahnhof(x, y, name));
-            // füge bahnhoef in die knotenliste ein
-            knotenEinfuegen(knoten);
-        }
-        System.out.println("--------------------");
-        System.out.println("Generiere Verbindungen");
-        // generiere 1 - 2 verbindungen pro Knoten
-        for (int i = 0; i < b; i++) {
-            int verbindungen = (int) (Math.random() * 2) + 1;
-            for (int j = 0; j < verbindungen; j++) {
-                int ziel = (int) (Math.random() * b);
-                if (ziel != i && !gibVerbindung(i, ziel)) {
-                    VerbindungEinfuegen(i, ziel);
-                } else {
-                    j--;
-                }
-            }
-        }
-        System.out.println("--------------------");
+        KreisBahnhoefeGenereien(b);
         // zeichne alle Knoten
         zeichneKnotenliste();
-        System.out.println("--------------------");
         zeichenAdjezenzenMatrix();
     }
 
@@ -149,7 +118,7 @@ public class Zugnetz {
 
     // checken ob bahnhof in nähe
     public boolean bahnhofInNaehe(int x, int y) {
-        int distanz = 300;
+        int distanz = 100;
         for (int i = 0; i < anzahl; i++) {
             Bahnhof b = (Bahnhof) knotenliste[i].inhaltGeben();
             if (b.xGeben() - distanz < x && x < b.xGeben() + distanz && b.yGeben() - distanz < y
@@ -167,9 +136,30 @@ public class Zugnetz {
             System.out.println(b.xGeben() + " " + b.yGeben() + " " + b.nameGeben() + " wird gezeichnet");
             leinwand.zeichne(b, "schwarz", new Rectangle(b.xGeben(), b.yGeben(), 30, 30));
         }
-    }
 
-    public void zeichenAdjezenzenMatrix() {
+    }
+    public void zeichneZug(){
+        Rectangle rectangle = new Rectangle((int)zug.getX(), (int)zug.getY(), 40, 20);
+        leinwand.zeichne(zug, "blau", rectangle);
+    }
+    public void bewegeZug(int xnew, int ynew) throws InterruptedException {
+        float deltaX = xnew - zug.getX();
+        float deltaY = ynew - zug.getY();
+        float length = (float) Math.sqrt(Math.pow(deltaY, 2) + Math.pow(deltaX, 2));
+        while(true) {
+            zug.setX((zug.getX() + (deltaX/length)));
+            zug.setY((zug.getY() + (deltaY/length)));
+            zeichneZug();
+            Thread.sleep(5);
+            if(Math.abs(zug.getX() - xnew) < 3) {
+            zug.setX(xnew);
+            zug.setY(ynew);
+            zeichneZug();
+            break;
+            }
+        }
+    }
+    public void zeichenAdjezenzenMatrix() throws InterruptedException {
         for (int i = 0; i < anzahl; i++) {
             for (int j = 0; j < anzahl; j++) {
                 if (adjazenzmatrix[i][j]) {
@@ -189,8 +179,92 @@ public class Zugnetz {
                             + " wird gezeichnet. Sie liegt bei: " + b1.xGeben() + ", " + b1.yGeben() + " und "
                             + b2.xGeben() + ", " + b2.yGeben() + ". ");
                     leinwand.zeichne(verbindung, "blau", transformed);
+                    zug.setX(b1.xGeben());
+                    zug.setY(b1.yGeben());
+
                 }
             }
         }
     }
+    // graph generieren methodem
+    private void randomBahnhofGeneration(int b) {
+        for (int i = 0; i < b; i++) {
+            // x und y werte über den bildschirm verteilen bahnhoefe sodass sie nicht näher
+            // als 50 pixel aneinander sind
+            int x = (int) (Math.random() * (bildschirmbreite));
+            int y = (int) (Math.random() * (bildschirmhoehe));
+            System.out.println("Bahnhof " + i + " an Position " + x + " x " + y + " y");
+            if (bahnhofInNaehe(x, y)) {
+                System.out.println("Bahnhof in der Nähe. Erstelle neuen Bahnhof");
+                i--;
+                continue;
+            }
+            // name des bahnhoefes
+            String name = "Bahnhof " + i;
+            // erstelle neuen bahnhoef
+            Knoten knoten = new Knoten(new Bahnhof(x, y, name));
+            // füge bahnhoef in die knotenliste ein
+
+        }
+        System.out.println("--------------------");
+        System.out.println("Generiere Verbindungen");
+        // generiere 1 - 2 verbindungen pro Knoten
+        for (int i = 0; i < b; i++) {
+            int verbindungen = (int) (Math.random() * 2) + 1;
+            for (int j = 0; j < verbindungen; j++) {
+                int ziel = (int) (Math.random() * b);
+                if (ziel != i && !gibVerbindung(i, ziel)) {
+                    VerbindungEinfuegen(i, ziel);
+                } else {
+                    j--;
+                }
+            }
+        }
+    }
+
+    // generiere Graph mit Kreisstruktur
+    private void KreisBahnhoefeGenereien(int b) {
+        int radius = bildschirmhoehe / 2 - 100;
+        int winkel = 360 / b; // winkel zwischen den bahnhoefen
+        // generiere alle bahnhoefe
+        for (int i = 0; i < b; i++) {
+            int x = (int) (Math.cos(Math.toRadians(winkel * i)) * radius + bildschirmbreite / 2);
+            int y = (int) (Math.sin(Math.toRadians(winkel * i)) * radius + bildschirmhoehe / 2);
+            String name = "Bahnhof " + i;
+            Knoten knoten = new Knoten(new Bahnhof(x, y, name));
+            knotenEinfuegen(knoten);
+        }
+        // verbindung immer zum nächsten bahnhof
+        for (int i = 0; i < b; i++) {
+            if (i == b - 1) {
+                VerbindungEinfuegen(i, 0);
+            } else {
+                VerbindungEinfuegen(i, i + 1);
+            }
+        }
+    }
+
+    // Generiere Graph mit einer Sinvollen Struktur
+   private void BahnhoefeGenerieren() {
+        Knoten k1 = new Knoten(new Bahnhof(100, 100, "Bahnhof 1"));
+        Knoten k2 = new Knoten(new Bahnhof(200, 100, "Bahnhof 2"));
+        Knoten k3 = new Knoten(new Bahnhof(300, 200, "Bahnhof 3"));
+        Knoten k4 = new Knoten(new Bahnhof(400, 400, "Bahnhof 4"));
+        Knoten k5 = new Knoten(new Bahnhof(400, 700, "Bahnhof 5"));
+
+        knotenEinfuegen(k1);
+        knotenEinfuegen(k2);
+        knotenEinfuegen(k3);
+        knotenEinfuegen(k4);
+        knotenEinfuegen(k5);
+
+        // verbinfungen einfügen
+        VerbindungEinfuegen(0, 1);
+        VerbindungEinfuegen(1, 2);
+        VerbindungEinfuegen(2, 3);
+        VerbindungEinfuegen(3, 4);
+        VerbindungEinfuegen(0, 4);
+        VerbindungEinfuegen(0, 5);
+    }
+
 }

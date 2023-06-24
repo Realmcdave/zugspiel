@@ -9,7 +9,7 @@ public class Spiel {
     private Zugnetz zugnetz;
     // Züge dan hier
 
-    public Spiel(int breite, int hoehe, int BahnhoefeZahl) {
+    public Spiel(int breite, int hoehe, int BahnhoefeZahl) throws InterruptedException {
         this.breite = breite;
         this.hoehe = hoehe;
         leinwand = new Leinwand("Zugspiel", breite, hoehe, Color.white);

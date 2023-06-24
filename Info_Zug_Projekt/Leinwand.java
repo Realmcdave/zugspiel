@@ -10,10 +10,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
+import java.awt.event.MouseEvent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
 public class Leinwand {
 
     private static Leinwand leinwandSingleton;
