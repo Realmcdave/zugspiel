@@ -1,3 +1,4 @@
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.MouseEvent;
@@ -6,7 +7,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 
-public class Zugnetz  {
+public class Zugnetz {
     private Knoten[] knotenliste;
     private boolean[][] adjazenzmatrix;
     private int maxAnzahl;
@@ -22,7 +23,7 @@ public class Zugnetz  {
         this.bildschirmbreite = bildschirmbreite;
         this.bildschirmhoehe = bildschirmhoehe;
         this.leinwand = leinwand;
-        this.zug = new Zug();
+        this.zug = new Zug(leinwand);
         // zugnetz
         maxAnzahl = b;
         anzahl = 0;
@@ -45,23 +46,6 @@ public class Zugnetz  {
         }
     }
 
-    public int knotenindexSuchen(Knoten b) {
-        int index = -1;
-        int i = 0;
-        while (index < 0 && 1 < knotenliste.length) {
-            if (knotenliste[i].equals(b)) {
-                index = 1;
-            } else {
-                i = i + 1;
-            }
-            if (index < 0) {
-                System.out.println("Bahnhof in der Liste nicht gefunden!");
-            }
-            return index;
-        }
-        return index;
-    }
-
     public void VerbindungEinfuegen(int i, int j) {
         System.out.println("Verbindung zwischen " + i + " und " + j + " wird eingefuegt");
         if (i > anzahl || j > anzahl) {
@@ -72,48 +56,8 @@ public class Zugnetz  {
         }
     }
 
-    public void VerbindungEntfernen(int i, int j) {
-        if (!adjazenzmatrix[i][j] || i >= anzahl || j >= anzahl) {
-            System.out.println("Diese Verbindung existiert nicht!");
-        } else {
-            adjazenzmatrix[i][i] = false;
-        }
-    }
-
     public boolean gibVerbindung(int x, int y) {
         return (adjazenzmatrix[x][y] || adjazenzmatrix[y][x]);
-    }
-
-    public void adjazenzmatrixAusgeben() {
-        System.out.print("");
-        for (int i = 0; i < anzahl; i++) {
-            System.out.print(i + " ");
-        }
-        System.out.println("");
-        for (int i = 0; i < anzahl; i++) {
-            System.out.print(i + " ");
-            for (int j = 0; j < anzahl; j++) {
-                if (adjazenzmatrix[i][j]) {
-                    System.out.print("X ");
-                } else {
-                    System.out.print("- ");
-                }
-            }
-            System.out.println();
-        }
-    }
-
-    public Knoten[] knotenlisteGeben() {
-        return knotenliste;
-    }
-
-    public void knotenlisteAusgeben() {
-        String ausgabe = "[";
-        for (int i = 0; i < anzahl; i++) {
-            ausgabe += knotenliste[i].inhaltGeben().nameGeben() + " , ";
-        }
-        ausgabe += "]";
-        System.out.println(ausgabe);
     }
 
     // checken ob bahnhof in nähe
@@ -134,32 +78,16 @@ public class Zugnetz  {
         for (int i = 0; i < anzahl; i++) {
             Bahnhof b = (Bahnhof) knotenliste[i].inhaltGeben();
             System.out.println(b.xGeben() + " " + b.yGeben() + " " + b.nameGeben() + " wird gezeichnet");
-            leinwand.zeichne(b, "schwarz", new Rectangle(b.xGeben(), b.yGeben(), 30, 30));
+            Rectangle r = new Rectangle(b.xGeben(), b.yGeben(), 30, 30);
+            // index into r schreiben
+
+            leinwand.zeichne(b, "schwarz", r);
+
         }
 
     }
-    public void zeichneZug(){
-        Rectangle rectangle = new Rectangle((int)zug.getX(), (int)zug.getY(), 40, 20);
-        leinwand.zeichne(zug, "blau", rectangle);
-    }
-    public void bewegeZug(int xnew, int ynew) throws InterruptedException {
-        float deltaX = xnew - zug.getX();
-        float deltaY = ynew - zug.getY();
-        float length = (float) Math.sqrt(Math.pow(deltaY, 2) + Math.pow(deltaX, 2));
-        while(true) {
-            zug.setX((zug.getX() + (deltaX/length)));
-            zug.setY((zug.getY() + (deltaY/length)));
-            zeichneZug();
-            Thread.sleep(5);
-            if(Math.abs(zug.getX() - xnew) < 3) {
-            zug.setX(xnew);
-            zug.setY(ynew);
-            zeichneZug();
-            break;
-            }
-        }
-    }
-    public void zeichenAdjezenzenMatrix() throws InterruptedException {
+
+    public void zeichenAdjezenzenMatrix() {
         for (int i = 0; i < anzahl; i++) {
             for (int j = 0; j < anzahl; j++) {
                 if (adjazenzmatrix[i][j]) {
@@ -186,6 +114,7 @@ public class Zugnetz  {
             }
         }
     }
+
     // graph generieren methodem
     private void randomBahnhofGeneration(int b) {
         for (int i = 0; i < b; i++) {
@@ -230,7 +159,7 @@ public class Zugnetz  {
         for (int i = 0; i < b; i++) {
             int x = (int) (Math.cos(Math.toRadians(winkel * i)) * radius + bildschirmbreite / 2);
             int y = (int) (Math.sin(Math.toRadians(winkel * i)) * radius + bildschirmhoehe / 2);
-            String name = "Bahnhof " + i;
+            String name = "" + i;
             Knoten knoten = new Knoten(new Bahnhof(x, y, name));
             knotenEinfuegen(knoten);
         }
@@ -245,7 +174,7 @@ public class Zugnetz  {
     }
 
     // Generiere Graph mit einer Sinvollen Struktur
-   private void BahnhoefeGenerieren() {
+    private void BahnhoefeGenerieren() {
         Knoten k1 = new Knoten(new Bahnhof(100, 100, "Bahnhof 1"));
         Knoten k2 = new Knoten(new Bahnhof(200, 100, "Bahnhof 2"));
         Knoten k3 = new Knoten(new Bahnhof(300, 200, "Bahnhof 3"));
