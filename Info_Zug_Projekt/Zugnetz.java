@@ -25,17 +25,27 @@ public class Zugnetz {
         knotenliste = new Knoten[b];
         adjazenzmatrix = new boolean[b][b];
         // generiere b neue Knoten und schreibe sie in die Knotenliste
-        System.out.println("Bildschirm Groeße: " + bildschirmbreite + " x " + bildschirmhoehe + " y");
+        System.out.println("Generiere " + b + " neue Bahnhoefe");
         for (int i = 0; i < b; i++) {
-            // x und y werte über den bildschirm verteilen
-            int x = (int) (Math.random() * bildschirmbreite);
-            int y = (int) (Math.random() * bildschirmhoehe);
-            System.out.println("Position generiert: " + x + ", " + y + ".");
-            Bahnhof bahnhof = new Bahnhof(x, y, "Bahnhof " + i);
-            System.out.print("Bahnhof " + bahnhof.nameGeben() + " wurde eingefügt. Position: " + bahnhof.xGeben() + ", "
-                    + bahnhof.yGeben() + ". ");
-            knotenEinfuegen(new Knoten(bahnhof));
+            // x und y werte über den bildschirm verteilen bahnhoefe sodass sie nicht näher
+            // als 50 pixel aneinander sind
+            int x = (int) (Math.random() * (bildschirmbreite - 50));
+            int y = (int) (Math.random() * (bildschirmhoehe - 50));
+            System.out.println("Bahnhof " + i + " an Position " + x + " x " + y + " y");
+            if (bahnhofInNaehe(x, y)) {
+                System.out.println("Bahnhof in der Nähe. Erstelle neuen Bahnhof");
+                i--;
+                continue;
+            }
+            // name des bahnhoefes
+            String name = "Bahnhof " + i;
+            // erstelle neuen bahnhoef
+            Knoten knoten = new Knoten(new Bahnhof(x, y, name));
+            // füge bahnhoef in die knotenliste ein
+            knotenEinfuegen(knoten);
         }
+        System.out.println("--------------------");
+        System.out.println("Generiere Verbindungen");
         // generiere 1 - 2 verbindungen pro Knoten
         for (int i = 0; i < b; i++) {
             int verbindungen = (int) (Math.random() * 2) + 1;
@@ -48,8 +58,10 @@ public class Zugnetz {
                 }
             }
         }
+        System.out.println("--------------------");
         // zeichne alle Knoten
         zeichneKnotenliste();
+        System.out.println("--------------------");
         zeichenAdjezenzenMatrix();
     }
 
@@ -133,6 +145,19 @@ public class Zugnetz {
         }
         ausgabe += "]";
         System.out.println(ausgabe);
+    }
+
+    // checken ob bahnhof in nähe
+    public boolean bahnhofInNaehe(int x, int y) {
+        int distanz = 300;
+        for (int i = 0; i < anzahl; i++) {
+            Bahnhof b = (Bahnhof) knotenliste[i].inhaltGeben();
+            if (b.xGeben() - distanz < x && x < b.xGeben() + distanz && b.yGeben() - distanz < y
+                    && y < b.yGeben() + distanz) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // zeichen funktionen
