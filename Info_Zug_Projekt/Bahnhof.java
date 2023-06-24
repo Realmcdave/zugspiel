@@ -1,27 +1,39 @@
-public class Bahnhof extends Zugnetz
-{
-    private Datenelement inhalt;
-    private boolean markierung; 
-    
-    public Bahnhof (Datenelement d){
-        inhalt = d;
+public class Bahnhof {
+    private int x;
+    private int y;
+    private String name;
+
+    // konstrucktor
+    public Bahnhof(int x, int y, String name) {
+        this.x = x;
+        this.y = y;
+        this.name = name;
     }
-    
-    public Datenelement inhaltGeben () {
-        return inhalt;
+
+    // alle setter und getter
+
+    public void xSetzen(int x) {
+        this.x = x;
     }
-    
-    public void markierungSetzen (boolean m) {
-        markierung = m;
+
+    public void ySetzen(int y) {
+        this.y = y;
     }
-    
-    public boolean markierungGeben () {
-        return markierung;
+
+    public void nameSetzen(String name) {
+        this.name = name;
     }
-    
-    public abstract class Datenelement{
-        public abstract void ausgeben ();
+
+    public int xGeben() {
+        return x;
     }
-        
-    
+
+    public int yGeben() {
+        return y;
+    }
+
+    public String nameGeben() {
+        return name;
+    }
+
 }

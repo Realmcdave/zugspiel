@@ -1,94 +1,171 @@
-public class Zugnetz
-{
-    private Bahnhof[] bahnhofsliste; 
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
+import java.util.ArrayList;
+
+public class Zugnetz {
+    private Knoten[] knotenliste;
     private boolean[][] adjazenzmatrix;
-    private int maxAnzahl; 
+    private int maxAnzahl;
     private int anzahl;
-    
-    public Zugnetz(int b)
-    {
+
+    private int bildschirmbreite;
+    private int bildschirmhoehe;
+    private Leinwand leinwand;
+
+    public Zugnetz(int b, int bildschirmbreite, int bildschirmhoehe, Leinwand leinwand) {
+        // bildschirm
+        this.bildschirmbreite = bildschirmbreite;
+        this.bildschirmhoehe = bildschirmhoehe;
+        this.leinwand = leinwand;
+        // zugnetz
         maxAnzahl = b;
         anzahl = 0;
-        bahnhofsliste = new Bahnhof [b];       
-        adjazenzmatrix = new boolean [b] [b];
+        knotenliste = new Knoten[b];
+        adjazenzmatrix = new boolean[b][b];
+        // generiere b neue Knoten und schreibe sie in die Knotenliste
+        System.out.println("Bildschirm Groeße: " + bildschirmbreite + " x " + bildschirmhoehe + " y");
+        for (int i = 0; i < b; i++) {
+            // x und y werte über den bildschirm verteilen
+            int x = (int) (Math.random() * bildschirmbreite);
+            int y = (int) (Math.random() * bildschirmhoehe);
+            System.out.println("Position generiert: " + x + ", " + y + ".");
+            Bahnhof bahnhof = new Bahnhof(x, y, "Bahnhof " + i);
+            System.out.print("Bahnhof " + bahnhof.nameGeben() + " wurde eingefügt. Position: " + bahnhof.xGeben() + ", "
+                    + bahnhof.yGeben() + ". ");
+            knotenEinfuegen(new Knoten(bahnhof));
+        }
+        // generiere 1 - 2 verbindungen pro Knoten
+        for (int i = 0; i < b; i++) {
+            int verbindungen = (int) (Math.random() * 2) + 1;
+            for (int j = 0; j < verbindungen; j++) {
+                int ziel = (int) (Math.random() * b);
+                if (ziel != i && !gibVerbindung(i, ziel)) {
+                    VerbindungEinfuegen(i, ziel);
+                } else {
+                    j--;
+                }
+            }
+        }
+        // zeichne alle Knoten
+        zeichneKnotenliste();
+        zeichenAdjezenzenMatrix();
     }
 
-    public void knotenEinfuegen (Bahnhof b) {
+    public void knotenEinfuegen(Knoten b) {
         if (anzahl < maxAnzahl) {
-            bahnhofsliste[anzahl] = b;
-            anzahl = anzahl + 1;
-        }
-        else {
+            knotenliste[anzahl] = b;
+            anzahl++;
+            System.out.println("Bahnhof " + b.inhaltGeben().nameGeben() + " wurde eingefuegt. Jetzt gibt es " + anzahl
+                    + " Bahnhoefe.");
+        } else {
             System.out.println("Fehler - Die maximale Anzahl an Bahnhoefen ist schon erreicht");
-}
-}
+        }
+    }
 
-    public int knotenindexSuchen (Bahnhof b) {
-            int index = -1;
-            int i = 0;
-        while (index < 0 && 1 < bahnhofsliste.length) {
-            if (bahnhofsliste[i].equals(b) ) {
+    public int knotenindexSuchen(Knoten b) {
+        int index = -1;
+        int i = 0;
+        while (index < 0 && 1 < knotenliste.length) {
+            if (knotenliste[i].equals(b)) {
                 index = 1;
-            }
-            else {
-                i = i+1;
+            } else {
+                i = i + 1;
             }
             if (index < 0) {
-                System.out.println ("Bahnhof in der Liste nicht gefunden!");
+                System.out.println("Bahnhof in der Liste nicht gefunden!");
             }
+            return index;
+        }
         return index;
-}
-}
+    }
 
-    public void VerbindungEinfuegen (int i, int j) {
+    public void VerbindungEinfuegen(int i, int j) {
+        System.out.println("Verbindung zwischen " + i + " und " + j + " wird eingefuegt");
         if (i > anzahl || j > anzahl) {
-            System.out.println(" Falscher Index. So viele Bahnhoefe gibt es nicht!") ;
+            System.out.println(" Falscher Index. So viele Bahnhoefe gibt es nicht!");
+        } else {
+            adjazenzmatrix[i][j] = true;
+            adjazenzmatrix[j][i] = true;
         }
-        else {
-            adjazenzmatrix [i][j] = true;
-}
-}
+    }
 
-    public void VerbindungEntfernen (int i, int j) {
-        if (!adjazenzmatrix [i][j] || i >= anzahl || j >= anzahl) {
+    public void VerbindungEntfernen(int i, int j) {
+        if (!adjazenzmatrix[i][j] || i >= anzahl || j >= anzahl) {
             System.out.println("Diese Verbindung existiert nicht!");
+        } else {
+            adjazenzmatrix[i][i] = false;
         }
-        else {
-            adjazenzmatrix [i][i] = false;
-}
-}
-
-    public void adjazenzmatrixAusgeben () {
-        System.out.print ("");
-        for (int i = 0; i <anzahl; i++){
-        System.out.print (i+" ");
     }
-        System.out.println("");
-        for (int i = 0; i < anzahl; i++){
-            System.out.print (i+" ") ;
-            for (int j = 0; j < anzahl; j++) {
-                if (adjazenzmatrix [i][j]) {
-                  System.out.print("X ");  
-                }
-                else{       
-                    System.out.print ("- ") ;
-                }
-            }   
-        System.out.println ();
+
+    public boolean gibVerbindung(int x, int y) {
+        return (adjazenzmatrix[x][y] || adjazenzmatrix[y][x]);
     }
-}
 
-    public Bahnhof [] knotenlisteGeben ( ) {
-        return bahnhofsliste;
-}
-
-    public void bahnhofslisteAusgeben () {
+    public void adjazenzmatrixAusgeben() {
+        System.out.print("");
         for (int i = 0; i < anzahl; i++) {
-            System.out.print ("__ Knoten mit den Daten ") ;
-            bahnhofsliste[i].inhaltGeben().ausgeben();
-            System.out.print ("--");
-}
-}
-}
+            System.out.print(i + " ");
+        }
+        System.out.println("");
+        for (int i = 0; i < anzahl; i++) {
+            System.out.print(i + " ");
+            for (int j = 0; j < anzahl; j++) {
+                if (adjazenzmatrix[i][j]) {
+                    System.out.print("X ");
+                } else {
+                    System.out.print("- ");
+                }
+            }
+            System.out.println();
+        }
+    }
 
+    public Knoten[] knotenlisteGeben() {
+        return knotenliste;
+    }
 
+    public void knotenlisteAusgeben() {
+        String ausgabe = "[";
+        for (int i = 0; i < anzahl; i++) {
+            ausgabe += knotenliste[i].inhaltGeben().nameGeben() + " , ";
+        }
+        ausgabe += "]";
+        System.out.println(ausgabe);
+    }
+
+    // zeichen funktionen
+    public void zeichneKnotenliste() {
+        for (int i = 0; i < anzahl; i++) {
+            Bahnhof b = (Bahnhof) knotenliste[i].inhaltGeben();
+            System.out.println(b.xGeben() + " " + b.yGeben() + " " + b.nameGeben() + " wird gezeichnet");
+            leinwand.zeichne(b, "schwarz", new Rectangle(b.xGeben(), b.yGeben(), 30, 30));
+        }
+    }
+
+    public void zeichenAdjezenzenMatrix() {
+        for (int i = 0; i < anzahl; i++) {
+            for (int j = 0; j < anzahl; j++) {
+                if (adjazenzmatrix[i][j]) {
+                    Bahnhof b1 = (Bahnhof) knotenliste[i].inhaltGeben();
+                    Bahnhof b2 = (Bahnhof) knotenliste[j].inhaltGeben();
+                    int Laenge = (int) Math.sqrt(Math.pow(b1.xGeben() - b2.xGeben(), 2)
+                            + Math.pow(b1.yGeben() - b2.yGeben(), 2));
+                    Rectangle verbindung = new Rectangle(b1.xGeben(), b1.yGeben(), Laenge, 1);
+                    // rotate rectangle so that it is between the two stations
+
+                    AffineTransform transform = new AffineTransform();
+                    float angle = (float) (Math.atan2(b2.yGeben() - b1.yGeben(), b2.xGeben() - b1.xGeben()));
+                    transform.rotate(angle, b1.xGeben(), b1.yGeben());
+                    Shape transformed = transform.createTransformedShape(verbindung);
+
+                    System.out.println("Verbindung zwischen " + b1.nameGeben() + " und " + b2.nameGeben()
+                            + " wird gezeichnet. Sie liegt bei: " + b1.xGeben() + ", " + b1.yGeben() + " und "
+                            + b2.xGeben() + ", " + b2.yGeben() + ". ");
+                    leinwand.zeichne(verbindung, "blau", transformed);
+                }
+            }
+        }
+    }
+}
