@@ -1,5 +1,7 @@
 import java.awt.Shape;
 
+import java.awt.geom.Ellipse2D;
+
 import java.awt.Rectangle;
 
 public class Zug {
@@ -40,14 +42,15 @@ public class Zug {
 
     // zeichen funktionen
     public void zeichneZug() {
-        Rectangle rectangle = new Rectangle((int) x, (int) y, 40, 20);
-        leinwand.zeichne(this, "blau", rectangle);
+        Ellipse2D circle = new Ellipse2D.Double((int) x, (int) y, 30, 30);
+        leinwand.zeichne(this, "blau", circle);
     }
 
     public void bewegeZug(int xnew, int ynew) throws InterruptedException {
         float deltaX = xnew - this.getX();
         float deltaY = ynew - this.getY();
         float length = (float) Math.sqrt(Math.pow(deltaY, 2) + Math.pow(deltaX, 2));
+
         while (true) {
             this.setX((this.getX() + (deltaX / length)));
             this.setY((this.getY() + (deltaY / length)));
