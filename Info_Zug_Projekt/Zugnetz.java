@@ -23,16 +23,20 @@ public class Zugnetz {
         this.bildschirmbreite = bildschirmbreite;
         this.bildschirmhoehe = bildschirmhoehe;
         this.leinwand = leinwand;
-        this.zug = new Zug(leinwand);
+        this.zug = new Zug(leinwand, 0);
         // zugnetz
         maxAnzahl = b;
         anzahl = 0;
         knotenliste = new Knoten[b];
         adjazenzmatrix = new boolean[b][b];
-        KreisBahnhoefeGenereien(b);
+        randomBahnhofGeneration(b);
         // zeichne alle Knoten
         zeichneKnotenliste();
         zeichenAdjezenzenMatrix();
+        // zeichne Zug
+        zug.setX(knotenliste[0].inhaltGeben().xGeben());
+        zug.setY(knotenliste[0].inhaltGeben().yGeben());
+        zug.zeichneZug();
     }
 
     public void knotenEinfuegen(Knoten b) {
@@ -54,6 +58,36 @@ public class Zugnetz {
             adjazenzmatrix[i][j] = true;
             adjazenzmatrix[j][i] = true;
         }
+    }
+
+    public void zugZuBahnHofBewegen(int b) throws InterruptedException {
+        if (b > anzahl) {
+            System.out.println("Dummer Hund - So viele Bahnhoefe gibt es nicht!");
+            return;
+        }
+        if (!adjazenzmatrix[zug.getBahnhofIndex()][b]) {
+            System.out.print(
+                    "Dummer Hund keine Verbindung zwischen " + zug.getBahnhofIndex() + " und " + b + " vorhanden");
+            return;
+        }
+
+        System.out.println("Zug bewegt sich von " + zug.getBahnhofIndex() + " zu " + b);
+        Bahnhof bahnhof = (Bahnhof) knotenliste[b].inhaltGeben();
+        zug.bewegeZug(bahnhof.xGeben(), bahnhof.yGeben());
+        zug.setBahnhofIndex(b);
+    }
+
+    public void zugZuRandomBahnhofBewegen() throws InterruptedException {
+        // GET RANDOM BAHNHOF VON DER ADJAZENZEN MATRIX
+        boolean[] verbindungen = adjazenzmatrix[zug.getBahnhofIndex()];
+        ArrayList<Integer> verfuegbareBahnhofe = new ArrayList<Integer>();
+        for (int i = 0; i < verbindungen.length; i++) {
+            if (verbindungen[i]) {
+                verfuegbareBahnhofe.add(i);
+            }
+        }
+        int randomBahnhof = verfuegbareBahnhofe.get((int) (Math.random() * verfuegbareBahnhofe.size()));
+        zugZuBahnHofBewegen(randomBahnhof);
     }
 
     public boolean gibVerbindung(int x, int y) {
@@ -107,8 +141,6 @@ public class Zugnetz {
                             + " wird gezeichnet. Sie liegt bei: " + b1.xGeben() + ", " + b1.yGeben() + " und "
                             + b2.xGeben() + ", " + b2.yGeben() + ". ");
                     leinwand.zeichne(verbindung, "blau", transformed);
-                    zug.setX(b1.xGeben());
-                    zug.setY(b1.yGeben());
 
                 }
             }
@@ -123,7 +155,7 @@ public class Zugnetz {
             int x = (int) (Math.random() * (bildschirmbreite));
             int y = (int) (Math.random() * (bildschirmhoehe));
             System.out.println("Bahnhof " + i + " an Position " + x + " x " + y + " y");
-            if (bahnhofInNaehe(x, y)) {
+            if (i != 0 && bahnhofInNaehe(x, y)) {
                 System.out.println("Bahnhof in der Nähe. Erstelle neuen Bahnhof");
                 i--;
                 continue;
@@ -133,7 +165,7 @@ public class Zugnetz {
             // erstelle neuen bahnhoef
             Knoten knoten = new Knoten(new Bahnhof(x, y, name));
             // füge bahnhoef in die knotenliste ein
-
+            knotenEinfuegen(knoten);
         }
         System.out.println("--------------------");
         System.out.println("Generiere Verbindungen");

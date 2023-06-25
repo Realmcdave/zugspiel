@@ -1,14 +1,16 @@
 import java.awt.Shape;
 
-import javafx.scene.shape.Rectangle;
+import java.awt.Rectangle;
 
 public class Zug {
     private Leinwand leinwand;
     private float x;
     private float y;
+    private int bahnnhofIndex;
 
-    public Zug(Leinwand leinwand) {
+    public Zug(Leinwand leinwand, int b) {
         this.leinwand = leinwand;
+        this.bahnnhofIndex = b;
     }
 
     // setter and getter
@@ -18,6 +20,14 @@ public class Zug {
 
     public void setY(float y) {
         this.y = y;
+    }
+
+    public void setBahnhofIndex(int b) {
+        this.bahnnhofIndex = b;
+    }
+
+    public int getBahnhofIndex() {
+        return bahnnhofIndex;
     }
 
     public float getX() {
@@ -31,7 +41,7 @@ public class Zug {
     // zeichen funktionen
     public void zeichneZug() {
         Rectangle rectangle = new Rectangle((int) x, (int) y, 40, 20);
-        leinwand.zeichne(this, "blau", (Shape) rectangle);
+        leinwand.zeichne(this, "blau", rectangle);
     }
 
     public void bewegeZug(int xnew, int ynew) throws InterruptedException {
