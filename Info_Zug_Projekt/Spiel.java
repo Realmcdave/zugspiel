@@ -50,14 +50,16 @@ public class Spiel {
         }
         if (in.equals("zufall")) {
             zugnetz.zugZuRandomBahnhofBewegen();
+            if (zugnetz.getZug().getBahnhofIndex() == ZielBahnhofIndex) {
+                handleGewinn();
+            }
             return;
         }
         try {
             int index = Integer.parseInt(in);
             if (index >= 0 && index < zugnetz.getAnzahl()) {
                 if (zugnetz.zugZuBahnHofBewegen(index) && index == ZielBahnhofIndex) {
-                    System.out.println("Gewonnen!");
-                    System.exit(0);
+                    handleGewinn();
                 }
             } else {
                 System.out.println("Fehler - Bitte gib eine Zahl zwischen 0 und " + (zugnetz.getAnzahl() - 1) + " ein");
@@ -66,6 +68,11 @@ public class Spiel {
         } catch (Exception e) {
             System.out.println("Fehler - Bitte gib eine Zahl ein");
         }
+    }
+
+    public void handleGewinn() {
+        System.out.println("Gewonnen! Du hast " + zuege + " gebraucht!");
+        System.exit(0);
     }
 
 }

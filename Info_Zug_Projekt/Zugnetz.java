@@ -241,4 +241,7 @@ public class Zugnetz {
         return anzahl;
     }
 
+    public Zug getZug() {
+        return zug;
+    }
 }
